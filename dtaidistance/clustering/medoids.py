@@ -41,6 +41,7 @@ class Medoids:
         self.k = k
         self.series = None
         self.cluster_idx = None
+        self.st_score = None
 
     def plot(self, filename=None, axes=None, ts_height=10,
              bottom_margin=2, top_margin=2, ts_left_margin=0, ts_sample_length=1,
@@ -138,6 +139,7 @@ class KMedoids(Medoids):
         try:
             from pyclustering.cluster.kmedoids import kmedoids
             from pyclustering.utils import calculate_distance_matrix
+            from pyclustering.cluster.silhouette import silhouette
         except ImportError:
             raise PyClusteringException("The fit function requires the PyClustering package to be installed.")
         if np is None:
@@ -156,4 +158,5 @@ class KMedoids(Medoids):
         clusters = kmedoids_instance.get_clusters()
         medoids = kmedoids_instance.get_medoids()
         self.cluster_idx = {medoid: {inst for inst in instances} for medoid, instances in zip(medoids, clusters)}
-        return self.cluster_idx
+        self.st_score = silhouette(dists, clusters).process().get_score()
+        return self.cluster_idx, self.st_score
